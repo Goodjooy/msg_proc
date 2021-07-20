@@ -1,4 +1,4 @@
-# Msg Procces
+# Msg Process
 
 * 负责[mirai-api-http](https://github.com/project-mirai/mirai-api-http)中的接收消息反序列化和发送消息的序列化
 * 定义消息结构
@@ -27,10 +27,17 @@
     * 事件
     * 发送消息响应
 
+* 消息（message）
+    * 从ws响应容器内开始解析
+
 * 消息sender
     * 多种共用
     * sender--target 转换
+
 * 消息target
     * 多种target
     * 接收msg_chain
     * 序列化后放入容器即可使用
+
+* 提供一个线程安全的HashMap供各个ws响应使用
+* 自动添加标识符
