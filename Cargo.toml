@@ -6,3 +6,9 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.64"
+
+msg_chain={git="https://github.com/Goodjooy/msg_chain"}
+
+from_map={path="./from_map"}
