@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
 use serde_json::Value;
-use from_map::FromMap;
+use from_map::{FromMap};
 use crate::generate_sender_picker;
 use crate::{Permission, Platform};
 use msg_chain::FromChainMeta;
 use msg_chain::IntoChainMeta;
 mod impls;
 
-generate_sender_picker!(GroupBaseSender,SingleSender,ClientSender);
+
 
 pub trait FromMap:Sized {
     fn from_map(map:&HashMap<String,Value>)->Option<Self>;

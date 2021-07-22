@@ -36,7 +36,7 @@ impl Permission {
             "Owner" => Some(Self::Owner),
             "Member" => Some(Self::Member),
             "Admin" => Some(Self::Admin),
-            s => None,
+            _s => None,
         }
     }
 }
@@ -50,7 +50,7 @@ impl Platform {
     pub fn from_str(s: &str) -> Option<Self> {
         match &s[..] {
             "MOBILE" => Some(Self::Mobile),
-            s => None,
+            _s => None,
         }
     }
 }

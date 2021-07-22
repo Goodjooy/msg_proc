@@ -26,7 +26,7 @@ fn handle(ast:&DeriveInput)->TokenStream{
     let get_data=data_c.iter()
     .map(|f|{
         let name = &f.0;
-        let temp_name=format_ident!("__temp__{}__",name);
+        let temp_name=format_ident!("__temp_{}",name);
         let map_name=&f.1;
         let ty = &f.2;
         let (t,b)=load_type(ty);

@@ -90,13 +90,13 @@ impl FromChainMeta for Group{
 #[macro_export]
 macro_rules! generate_sender_picker {
     ($($t:ty),*) => {
-        pub fn sender_picker(map:&HashMap<String,serde_json::Value>)->Option<Box<dyn crate::Sender>>{
+        fn sender_picker(map:&HashMap<String,serde_json::Value>)->Option<Box<dyn crate::Sender>>{
             $(
                 if let Some(value)=<$t>::from_map(map){
                     return Some(Box::new(value));
                 }
             )*
-            None
+            return None;
         }
     };
 }
