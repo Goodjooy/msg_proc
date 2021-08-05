@@ -38,7 +38,7 @@ pub struct Face {
     pub face_id: i32,
     pub name: String,
 }
-#[derive(MessageChain, LoadFormMap)]
+#[derive(MessageChain, LoadFormMap,Default)]
 pub struct Image {
     pub image_id: Option<String>,
     pub url: Option<String>,
@@ -46,7 +46,7 @@ pub struct Image {
     pub base64: Option<String>,
 }
 
-#[derive(MessageChain, LoadFormMap)]
+#[derive(MessageChain, LoadFormMap,Default)]
 pub struct FlashImage {
     pub image_id: Option<String>,
     pub url: Option<String>,
@@ -54,7 +54,7 @@ pub struct FlashImage {
     pub base64: Option<String>,
 }
 
-#[derive(MessageChain, LoadFormMap)]
+#[derive(MessageChain, LoadFormMap,Default)]
 pub struct Voice {
     pub voice_id: Option<String>,
     pub url: Option<String>,

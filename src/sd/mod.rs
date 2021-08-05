@@ -1,7 +1,8 @@
 use crate::Sender;
 
-mod impls;
-mod send_body;
+pub mod impls;
+pub mod send_body;
+pub mod utils;
 
 pub trait SendTarget {
     fn target_id(&self) -> u64;

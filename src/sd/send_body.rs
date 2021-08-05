@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::Serialize;
 
-use crate::MessageChain;
+use msg_chain::MessageChain;
 
 pub trait MsgSend:Sized {
     fn into_json(self)->serde_json::Value

@@ -6,13 +6,12 @@ use crate::{generate_sender_picker, rev::msg_chain::message_chain_loader};
 use ::msg_chain::{ChainMeta, IntoChainMeta};
 use serde_json::Map;
 use serde_json::Value;
-use std::collections::btree_map::VacantEntry;
 use std::collections::HashMap;
 
 use crate::MessageRev;
 
-mod msg_chain;
-mod sender;
+pub mod msg_chain;
+pub mod sender;
 
 generate_sender_picker!(GroupBaseSender, SingleSender, ClientSender);
 

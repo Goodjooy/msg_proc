@@ -1,5 +1,5 @@
-use crate::send::send_body::MsgSend;
-use crate::send::send_body::NudgeSend;
+use crate::sd::send_body::MsgSend;
+use crate::sd::send_body::NudgeSend;
 use msg_chain::MessageChain;
 use serde::Serialize;
 
