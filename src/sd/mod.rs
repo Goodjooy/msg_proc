@@ -18,6 +18,15 @@ impl SendTarget for dyn Sender {
         Some(*self.get_group_from()?)
     }
 }
+impl SendTarget for Box<dyn Sender> {
+    fn target_id(&self) -> u64 {
+        *self.get_sender_id()
+    }
+
+    fn target_group(&self) -> Option<u64> {
+        Some(*self.get_group_from()?)
+    }
+}
 
 pub struct CustomTarget {
     id: u64,
