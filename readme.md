@@ -20,24 +20,15 @@
 * [戳一戳消息](https://github.com/project-mirai/mirai-api-http/blob/master/docs/adapter/WebsocketAdapter.md#%E5%8F%91%E9%80%81%E5%A4%B4%E5%83%8F%E6%88%B3%E4%B8%80%E6%88%B3%E6%B6%88%E6%81%AF)
 * [消息撤回](https://github.com/project-mirai/mirai-api-http/blob/master/docs/adapter/WebsocketAdapter.md#%E6%92%A4%E5%9B%9E%E6%B6%88%E6%81%AF)
 
-## 附加
+## 接收消息反序列化
+* `MessageRev`
+* ```rust
+    pub struct MessageRev {
+    pub msg_type: String,  // 消息类型
+    pub sender: Box<dyn Sender>, // 消息发送者
+    pub chain: Vec<Box<dyn MessageChain>>, // 消息内容
+    }```
 
-* 判断当前消息类型
-    * 消息
-    * 事件
-    * 发送消息响应
+*  提供方法 `load_recive_data`将解析完毕的`Hashmap<String,serde_json::Value>`转换为`MessageRev`
 
-* 消息（message）
-    * 从ws响应容器内开始解析
-
-* 消息sender
-    * 多种共用
-    * sender--target 转换
-
-* 消息target
-    * 多种target
-    * 接收msg_chain
-    * 序列化后放入容器即可使用
-
-* 提供一个线程安全的HashMap供各个ws响应使用
-* 自动添加标识符
+## 发送消息序列化
