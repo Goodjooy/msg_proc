@@ -31,13 +31,13 @@
     pub sender: Box<dyn Sender>, // 消息发送者
     pub chain: Vec<Box<dyn MessageChain>>, // 消息内容
     }
-    ```
+```
 
 * 提供方法 `load_recive_data`将解析完毕的`Hashmap<String,serde_json::Value>`转换为`MessageRev`
 
 ## 发送消息序列化
 
-* todo
+* t o d o
 
 ## 消息链构造器
 
@@ -109,7 +109,7 @@
     );
 ```
 
-* 循环语持
+* 循环语句支持
 
 ```rust
     iter1 = 1..5;
