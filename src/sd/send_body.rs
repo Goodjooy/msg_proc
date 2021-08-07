@@ -12,6 +12,7 @@ pub trait MsgSend: Sized {
 }
 
 impl MsgSend for SignleTagetSend {}
+
 #[derive(serde::Serialize)]
 pub struct SignleTagetSend {
     pub sessionKey: Option<String>,
@@ -21,6 +22,7 @@ pub struct SignleTagetSend {
 }
 
 impl MsgSend for TempTagetSend {}
+
 #[derive(serde::Serialize)]
 pub struct TempTagetSend {
     pub sessionKey: Option<String>,
@@ -29,7 +31,9 @@ pub struct TempTagetSend {
     pub quote: Option<i64>,
     pub messageCahin: Vec<Box<dyn MessageChain>>,
 }
+
 impl MsgSend for NudgeSend {}
+
 #[derive(serde::Serialize)]
 pub struct NudgeSend {
     pub sessionKey: Option<String>,
@@ -37,12 +41,15 @@ pub struct NudgeSend {
     pub subject: u64,
     pub kind: Kind,
 }
+
 impl MsgSend for ReCall {}
+
 #[derive(serde::Serialize)]
 pub struct ReCall {
     pub sessionKey: Option<String>,
     pub target: i64,
 }
+
 
 #[derive(serde::Serialize)]
 pub enum Kind {

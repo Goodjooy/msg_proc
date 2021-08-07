@@ -174,6 +174,11 @@ impl ChainBuilder {
 }
 
 impl ChainBuilder {
+    pub fn push(mut self, data: Box<dyn MessageChain>) -> Self {
+        self.0.push(data);
+        self
+    }
+
     pub fn textln<T: Display>(mut self, text: T) -> Self {
         self.0.push(Box::new(Plain {
             text: format!("{}\n", text),
