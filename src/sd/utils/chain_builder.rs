@@ -59,11 +59,11 @@ impl ChainBuilder {
         }
     }
 
-    pub fn loop_in<T, F, I, F_S>(mut self, src: I, handle: F, sep: F_S) -> Self
+    pub fn loop_in<T, F, I, FS>(mut self, src: I, handle: F, sep: FS) -> Self
     where
         I: Iterator<Item = T>,
         F: Fn(Self, T, usize) -> Self,
-        F_S: Fn(Self) -> Self,
+        FS: Fn(Self) -> Self,
     {
         let mut start = false;
         for (index, data) in src.enumerate() {
@@ -87,6 +87,29 @@ impl ChainBuilder {
             .filter(|f| !SEND_UNABLE_TYPE.contains(&f.get_type()))
             .collect::<Vec<_>>();
         Self(v)
+    }
+
+    pub fn simplify(mut self) -> Self {
+        let mut data: Vec<Box<dyn MessageChain>> = Vec::new();
+        let mut text = None;
+
+        for d in self.0 {
+            if d.get_type().to_lowercase() == "plain" {
+                let t = d.into_target::<Plain>().unwrap();
+                text = match text {
+                    Some(s) => Some(format!("{}{}", s, t.text)),
+                    None => Some(t.text),
+                }
+            } else {
+                if let Some(t) = text {
+                    data.push(Box::new(Plain { text: t }));
+                    text = None;
+                }
+                data.push(d)
+            }
+        }
+        self.0 = data;
+        self
     }
 
     pub fn check_conflict(&self) -> bool {
@@ -189,6 +212,8 @@ impl ChainBuilder {
 
 #[cfg(test)]
 mod test {
+    use crate::send::utils::chain_handle::ToMsgHandle;
+
     use super::*;
 
     #[test]
@@ -199,26 +224,31 @@ mod test {
             .text("好耶")
             .face(53)
             .at(114145)
-            .if_then(true, |b| {
-                b.textln("yes")
+            .if_then(true, |chain| {
+                chain
+                    .textln("yes")
                     .at_all()
                     .face(13)
-                    .text("不对吧")
+                    .textln("不对吧")
                     .image(ResouceSrc::url("http://idididid"))
             })
             .loop_in(
-                vec![1, 2, 3, 4].iter(),
-                |f, b, _i| f.textln(format!("好耶：：{}", b)).at(114145),
-                |s| s.text_repeat_ln("-", 6),
+                0..4,
+                |chain, data: u8, i| {
+                    chain
+                        .if_then(data % 2 == 0, |chain| chain.textln("现在是偶数"))
+                        .textln(format!(" 好耶：：{} |当前第{}个 ", data, i))
+                        .text_repeat_ln("ab", 5)
+                        .at(114145)
+                },
+                |chain| chain.text_repeat_ln("-", 6),
             )
-            .build();
-
-        let chain = ChainBuilder::form_chain(chain.into_iter())
-            .textln("好耶2")
+            .simplify()
             .build();
 
         let res = serde_json::to_string_pretty(&chain);
 
-        println!("{}", &res.unwrap())
+        println!("{}", &res.unwrap());
+        println!("{}", chain.to_msg_handle().conbin_plain().unwrap())
     }
 }
