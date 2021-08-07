@@ -49,13 +49,12 @@ pub enum Platform {
 
 pub mod recive {
     use std::collections::HashMap;
-
     use serde_json::Value;
-
     use self::sender::FromMap;
     use crate::rev::MessageRevMid;
-    pub use crate::MessageRev;
 
+    
+    pub use crate::MessageRev;
     pub use super::Sender;
 
     pub mod sender {
@@ -78,8 +77,10 @@ pub mod chain {
     /// load func
     pub use crate::rev::msg_chain::message_chain_loader;
 
-   
-    
+    pub mod chain_utils {
+        pub use crate::sd::utils::chain_builder::ChainBuilder;
+        pub use crate::sd::utils::chain_handle::{ChainHandle, ToMsgHandle};
+    }
 }
 
 pub mod send {

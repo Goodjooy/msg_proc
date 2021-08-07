@@ -8,6 +8,7 @@ use super::{resouce::ResouceSrc, BulidTarget};
 
 pub struct ChainBuilder(Vec<Box<dyn MessageChain>>);
 
+/// constructors
 impl ChainBuilder {
     pub fn new() -> Self {
         Self(vec![])
@@ -24,54 +25,109 @@ impl ChainBuilder {
         Self(vec)
     }
 }
+/// if branch statment
 impl ChainBuilder {
-    pub fn if_then<F>(self, status: bool, f: F) -> Self
+    pub fn if_then<F>(self, status: bool, f: F, f_else: Option<F>) -> Self
     where
         F: FnOnce(Self) -> Self,
     {
         if status {
             f(self)
         } else {
-            self
+            if let Some(f_else) = f_else {
+                f_else(self)
+            } else {
+                self
+            }
         }
     }
-
-    pub fn if_some<T, F>(self, data: Option<T>, handle: F) -> Self
+}
+/// option branch statments
+impl ChainBuilder {
+    pub fn if_option<T, FS, FN>(
+        self,
+        data: Option<T>,
+        handle_some: Option<FS>,
+        handle_none: Option<FN>,
+    ) -> Self
     where
-        F: FnOnce(Self, T) -> Self,
+        FS: FnOnce(Self, T) -> Self,
+        FN: FnOnce(Self) -> Self,
     {
         match data {
-            Some(t) => handle(self, t),
-            None => self,
+            Some(data) => {
+                if let Some(handle_some) = handle_some {
+                    handle_some(self, data)
+                } else {
+                    self
+                }
+            }
+            None => {
+                if let Some(handle_none) = handle_none {
+                    handle_none(self)
+                } else {
+                    self
+                }
+            }
         }
     }
-    pub fn default_err_handle<E>(self, _err: E) -> Self {
-        self
-    }
-    pub fn if_ok<T, F, E, FE>(self, data: Result<T, E>, handle: F, err_handle: FE) -> Self
+}
+
+impl ChainBuilder {
+    pub fn if_result<T, FO, E, FE>(
+        self,
+        data: Result<T, E>,
+        handle: Option<FO>,
+        err_handle: Option<FE>,
+    ) -> Self
     where
-        F: FnOnce(Self, T) -> Self,
+        FO: FnOnce(Self, T) -> Self,
         FE: FnOnce(Self, E) -> Self,
     {
         match data {
-            Ok(data) => handle(self, data),
-            Err(err) => err_handle(self, err),
+            Ok(data) => {
+                if let Some(handle) = handle {
+                    handle(self, data)
+                } else {
+                    self
+                }
+            }
+            Err(err) => {
+                if let Some(handle) = err_handle {
+                    handle(self, err)
+                } else {
+                    self
+                }
+            }
         }
     }
+}
 
-    pub fn loop_in<T, F, I, FS>(mut self, src: I, handle: F, sep: FS) -> Self
+impl ChainBuilder {
+    pub fn loop_in_with_sep<T, F, I, FS>(mut self, src: I, handle: F, sep: FS) -> Self
     where
         I: Iterator<Item = T>,
         F: Fn(Self, T, usize) -> Self,
         FS: Fn(Self) -> Self,
     {
         let mut start = false;
+
         for (index, data) in src.enumerate() {
             self = handle(self, data, index);
             if start {
                 self = sep(self)
             }
             start = true;
+        }
+        self
+    }
+    pub fn loop_in<T, F, I>(mut self, src: I, handle: F) -> Self
+    where
+        I: Iterator<Item = T>,
+        F: Fn(Self, T, usize) -> Self,
+    {
+        for (index, data) in src.enumerate() {
+            self = handle(self, data, index);
         }
         self
     }
@@ -224,19 +280,23 @@ mod test {
             .text("好耶")
             .face(53)
             .at(114145)
-            .if_then(true, |chain| {
-                chain
-                    .textln("yes")
-                    .at_all()
-                    .face(13)
-                    .textln("不对吧")
-                    .image(ResouceSrc::url("http://idididid"))
-            })
-            .loop_in(
+            .if_then(
+                true,
+                |chain| {
+                    chain
+                        .textln("yes")
+                        .at_all()
+                        .face(13)
+                        .textln("不对吧")
+                        .image(ResouceSrc::url("http://idididid"))
+                },
+                None,
+            )
+            .loop_in_with_sep(
                 0..4,
                 |chain, data: u8, i| {
                     chain
-                        .if_then(data % 2 == 0, |chain| chain.textln("现在是偶数"))
+                        .if_then(data % 2 == 0, |chain| chain.textln("现在是偶数"), None)
                         .textln(format!(" 好耶：：{} |当前第{}个 ", data, i))
                         .text_repeat_ln("ab", 5)
                         .at(114145)
