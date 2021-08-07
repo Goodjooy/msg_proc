@@ -27,78 +27,87 @@ impl ChainBuilder {
 }
 /// if branch statment
 impl ChainBuilder {
-    pub fn if_then<F>(self, status: bool, f: F, f_else: Option<F>) -> Self
+    pub fn if_then<F>(self, status: bool, f: F) -> Self
     where
         F: FnOnce(Self) -> Self,
     {
         if status {
             f(self)
         } else {
-            if let Some(f_else) = f_else {
-                f_else(self)
-            } else {
-                self
-            }
+            self
+        }
+    }
+    pub fn if_else<F, FE>(self, status: bool, f: F, f_else: FE) -> Self
+    where
+        F: FnOnce(Self) -> Self,
+        FE: FnOnce(Self) -> Self,
+    {
+        if status {
+            f(self)
+        } else {
+            f_else(self)
         }
     }
 }
 /// option branch statments
 impl ChainBuilder {
-    pub fn if_option<T, FS, FN>(
-        self,
-        data: Option<T>,
-        handle_some: Option<FS>,
-        handle_none: Option<FN>,
-    ) -> Self
+    pub fn if_some<T, FS>(self, data: Option<T>, handle_some: FS) -> Self
+    where
+        FS: FnOnce(Self, T) -> Self,
+    {
+        match data {
+            Some(data) => handle_some(self, data),
+            None => self,
+        }
+    }
+    pub fn if_none<T, FN>(self, data: Option<T>, handle_none: FN) -> Self
+    where
+        FN: FnOnce(Self) -> Self,
+    {
+        match data {
+            Some(_) => self,
+            None => handle_none(self),
+        }
+    }
+    pub fn if_option<T, FS, FN>(self, data: Option<T>, handle_some: FS, handle_none: FN) -> Self
     where
         FS: FnOnce(Self, T) -> Self,
         FN: FnOnce(Self) -> Self,
     {
         match data {
-            Some(data) => {
-                if let Some(handle_some) = handle_some {
-                    handle_some(self, data)
-                } else {
-                    self
-                }
-            }
-            None => {
-                if let Some(handle_none) = handle_none {
-                    handle_none(self)
-                } else {
-                    self
-                }
-            }
+            Some(data) => handle_some(self, data),
+            None => handle_none(self),
         }
     }
 }
 
 impl ChainBuilder {
-    pub fn if_result<T, FO, E, FE>(
-        self,
-        data: Result<T, E>,
-        handle: Option<FO>,
-        err_handle: Option<FE>,
-    ) -> Self
+    pub fn if_ok<T, FO, E>(self, data: Result<T, E>, handle: FO) -> Self
+    where
+        FO: FnOnce(Self, T) -> Self,
+    {
+        match data {
+            Ok(data) => handle(self, data),
+            Err(_err) => self,
+        }
+    }
+    pub fn if_err<T, E, FE>(self, data: Result<T, E>, err_handle: FE) -> Self
+    where
+        FE: FnOnce(Self, E) -> Self,
+    {
+        match data {
+            Ok(_) => self,
+            Err(err) => err_handle(self, err),
+        }
+    }
+    pub fn if_result<T, FO, E, FE>(self, data: Result<T, E>, handle: FO, err_handle: FE) -> Self
     where
         FO: FnOnce(Self, T) -> Self,
         FE: FnOnce(Self, E) -> Self,
     {
         match data {
-            Ok(data) => {
-                if let Some(handle) = handle {
-                    handle(self, data)
-                } else {
-                    self
-                }
-            }
-            Err(err) => {
-                if let Some(handle) = err_handle {
-                    handle(self, err)
-                } else {
-                    self
-                }
-            }
+            Ok(data) => handle(self, data),
+            Err(err) => err_handle(self, err),
         }
     }
 }
@@ -179,6 +188,13 @@ impl ChainBuilder {
         self
     }
 
+    pub fn do_operate<F>(self, handle: F) -> Self
+    where
+        F: FnOnce(Self) -> Self,
+    {
+        handle(self)
+    }
+
     pub fn textln<T: Display>(mut self, text: T) -> Self {
         self.0.push(Box::new(Plain {
             text: format!("{}\n", text),
@@ -193,14 +209,14 @@ impl ChainBuilder {
         self
     }
 
-    pub fn text_repeat<T: Display>(mut self, text: T, times: usize) -> Self {
+    pub fn text_repeat<T: Display>(self, text: T, times: usize) -> Self {
         let s = text.to_string();
         let s = s.repeat(times);
 
         self.text(s)
     }
 
-    pub fn text_repeat_ln<T: Display>(mut self, text: T, times: usize) -> Self {
+    pub fn text_repeat_ln<T: Display>(self, text: T, times: usize) -> Self {
         let s = text.to_string();
         let s = s.repeat(times);
 
@@ -280,28 +296,30 @@ mod test {
     #[test]
     fn test_chain_builder() {
         let chain = ChainBuilder::new()
-            .textln("开始")
-            .image(ResouceSrc::path("./static/test_img.png"))
             .text("好耶")
+            .textln("开始")
+            .text_repeat("emm", 4)
+            .text_repeat_ln("-", 6)
+            .image(ResouceSrc::path("./static/test_img.png"))
             .face(53)
             .at(114145)
-            .if_then(
-                true,
-                |chain| {
-                    chain
-                        .textln("yes")
-                        .at_all()
-                        .face(13)
-                        .textln("不对吧")
-                        .image(ResouceSrc::url("http://idididid"))
-                },
-                None,
-            )
+            .at_all()
+            .push(Box::new(Plain {
+                text: String::from("abab"),
+            }))
+            .if_then(true, |chain| {
+                chain
+                    .textln("yes")
+                    .at_all()
+                    .face(13)
+                    .textln("不对吧")
+                    .image(ResouceSrc::url("http://idididid"))
+            })
             .loop_in_with_sep(
                 0..4,
                 |chain, data: u8, i| {
                     chain
-                        .if_then(data % 2 == 0, |chain| chain.textln("现在是偶数"), None)
+                        .if_then(data % 2 == 0, |chain| chain.textln("现在是偶数"))
                         .textln(format!(" 好耶：：{} |当前第{}个 ", data, i))
                         .text_repeat_ln("ab", 5)
                         .at(114145)
@@ -315,5 +333,75 @@ mod test {
 
         println!("{}", &res.unwrap());
         println!("{}", chain.to_msg_handle().conbin_plain().unwrap())
+    }
+
+    #[test]
+    fn if_branch() {
+        let so = Some(12);
+        let so2 = Some(11);
+        let ne = Option::<u8>::None;
+        let ok = Result::<i32, i32>::Ok(12);
+        let err = Result::<i32, i32>::Err(12);
+        let err2 = Result::<i32, i32>::Err(113);
+
+        let chain = ChainBuilder::new()
+            // 当条件为true,使用闭包，否则不进行任何操作
+            .if_then(2 + 2 == 4, |chain| chain.textln("2+2=4 is true"))
+            // 当条件为true,使用闭包f，否则使用闭包f_else
+            .if_else(
+                1 * 12 == 4,
+                |chain| chain.text("1*12 是 14"),
+                |chain| chain.text("1*12 不是 14"),
+            )
+            // 当 传入 Option 为 Some(T)时，使用闭包 handle_some ，否则不做任何操作
+            .if_some(so, |chain, data| chain.text(format!("ok: ->{}", data)))
+            // 当 传入 Option 为 None时，使用闭包 handle_none ，否则不做任何操作
+            .if_none(ne, |chain| chain.text("err"))
+            // 当 传入 Option 为 Some(T)时，使用闭包 handle_some ，否则使用闭包 handle_none
+            .if_option(
+                so2,
+                |chain, data| chain.text(data),
+                |chain| chain.text("is None"),
+            )
+            // 当 传入 Result 为 Ok(T)时，使用闭包 hanle ，否则不做任何操作
+            .if_ok(ok, |chain, data| chain.text(data))
+            // 当 传入 Result 为 Err(E)时，使用闭包 err_hanle ，否则不做任何操作
+            .if_err(err, |chain, err| chain.text("err:").text(err))
+            // 当 传入 Result 为 Ok(T) 时，使用闭包 hanle ，否则使用闭包 err_hanle
+            .if_result(
+                err2,
+                |chain, data| chain.text("ok ").text(data),
+                |chain, err| chain.text("err ").text(err),
+            );
+    }
+
+    #[test]
+    fn loop_statement() {
+        let iter1 = 1..5;
+        let iter2 = 'a'..'c';
+
+        let chain = ChainBuilder::new()
+            //在迭代遍历每个元素时，在2个元素间使用sep构造分割线
+            .loop_in_with_sep(
+                iter1,
+                |chain, data, index| chain.text(format!("第{}个。是： {}", index, data)),
+                |chain| chain.text_repeat_ln("-", 6),
+            )
+            // 对每个元素调用handle
+            .loop_in(iter2, |chain, data, _| {
+                chain.text(format!("当前是字符：{}", data))
+            });
+    }
+
+
+    #[test]
+    fn test_complex() {
+        let a=Some(1);
+
+        let chain=ChainBuilder::new()
+        .do_operate(|chain|match a {
+            Some(d) => chain.face(d),
+            None => chain.face(112),
+        });
     }
 }
