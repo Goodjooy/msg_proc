@@ -4,8 +4,7 @@ use msg_chain::MessageChain;
 
 use crate::rev::msg_chain::{At, AtAll, Face, FlashImage, Image, Plain, Voice};
 
-use super::{BulidTarget, resouce::ResouceSrc};
-
+use super::{resouce::ResouceSrc, BulidTarget};
 
 pub struct ChainBuilder(Vec<Box<dyn MessageChain>>);
 
@@ -23,6 +22,58 @@ impl ChainBuilder {
     {
         let vec = source.collect::<Vec<_>>();
         Self(vec)
+    }
+}
+impl ChainBuilder {
+    pub fn if_then<F>(self, status: bool, f: F) -> Self
+    where
+        F: FnOnce(Self) -> Self,
+    {
+        if status {
+            f(self)
+        } else {
+            self
+        }
+    }
+
+    pub fn if_some<T, F>(self, data: Option<T>, handle: F) -> Self
+    where
+        F: FnOnce(Self, T) -> Self,
+    {
+        match data {
+            Some(t) => handle(self, t),
+            None => self,
+        }
+    }
+    pub fn default_err_handle<E>(self, _err: E) -> Self {
+        self
+    }
+    pub fn if_ok<T, F, E, FE>(self, data: Result<T, E>, handle: F, err_handle: FE) -> Self
+    where
+        F: FnOnce(Self, T) -> Self,
+        FE: FnOnce(Self, E) -> Self,
+    {
+        match data {
+            Ok(data) => handle(self, data),
+            Err(err) => err_handle(self, err),
+        }
+    }
+
+    pub fn loop_in<T, F, I, F_S>(mut self, src: I, handle: F, sep: F_S) -> Self
+    where
+        I: Iterator<Item = T>,
+        F: Fn(Self, T, usize) -> Self,
+        F_S: Fn(Self) -> Self,
+    {
+        let mut start = false;
+        for (index, data) in src.enumerate() {
+            self = handle(self, data, index);
+            if start {
+                self = sep(self)
+            }
+            start = true;
+        }
+        self
     }
 }
 
@@ -56,6 +107,20 @@ impl ChainBuilder {
             text: text.to_string(),
         }));
         self
+    }
+
+    pub fn text_repeat<T: Display>(mut self, text: T, times: usize) -> Self {
+        let s = text.to_string();
+        let s = s.repeat(times);
+
+        self.text(s)
+    }
+
+    pub fn text_repeat_ln<T: Display>(mut self, text: T, times: usize) -> Self {
+        let s = text.to_string();
+        let s = s.repeat(times);
+
+        self.textln(s)
     }
 
     pub fn image(mut self, source: ResouceSrc) -> Self {
@@ -93,7 +158,6 @@ impl ChainBuilder {
         self
     }
 }
-
 
 impl ChainBuilder {
     pub fn flash_image(mut self, source: ResouceSrc) -> BulidTarget {
@@ -135,6 +199,18 @@ mod test {
             .text("好耶")
             .face(53)
             .at(114145)
+            .if_then(true, |b| {
+                b.textln("yes")
+                    .at_all()
+                    .face(13)
+                    .text("不对吧")
+                    .image(ResouceSrc::url("http://idididid"))
+            })
+            .loop_in(
+                vec![1, 2, 3, 4].iter(),
+                |f, b, _i| f.textln(format!("好耶：：{}", b)).at(114145),
+                |s| s.text_repeat_ln("-", 6),
+            )
             .build();
 
         let chain = ChainBuilder::form_chain(chain.into_iter())
