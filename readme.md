@@ -139,3 +139,9 @@
         None => chain.face(112),
     });
 ```
+
+* 完成构造后，可以使用`simplify`合并相邻的文本，使用`build`构造出`Vec<Box<dyn MessageChain>>`
+
+```rust
+    let chain : Vec<Box<dyn MessageChain>> = chain.simplify().build();
+```  
