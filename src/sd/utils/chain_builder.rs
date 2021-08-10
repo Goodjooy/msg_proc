@@ -173,6 +173,11 @@ impl ChainBuilder {
                 data.push(d)
             }
         }
+        if let Some(t) = text {
+            data.push(Box::new(Plain { text: t }));
+            text = None;
+        }
+
         self.0 = data;
         self
     }

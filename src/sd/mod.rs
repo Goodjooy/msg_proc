@@ -3,7 +3,7 @@ use crate::Sender;
 pub mod impls;
 pub mod send_body;
 pub mod utils;
-
+pub mod msg_send;
 pub trait SendTarget {
     fn target_id(&self) -> u64;
     fn target_group(&self) -> Option<u64>;

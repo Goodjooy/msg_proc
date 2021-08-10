@@ -48,14 +48,13 @@ pub enum Platform {
 }
 
 pub mod recive {
-    use std::collections::HashMap;
-    use serde_json::Value;
     use self::sender::FromMap;
     use crate::rev::MessageRevMid;
+    use serde_json::Value;
+    use std::collections::HashMap;
 
-    
-    pub use crate::MessageRev;
     pub use super::Sender;
+    pub use crate::MessageRev;
 
     pub mod sender {
         pub use crate::rev::sender::FromMap;
@@ -77,10 +76,8 @@ pub mod chain {
     /// load func
     pub use crate::rev::msg_chain::message_chain_loader;
 
-    pub mod chain_utils {
-        pub use crate::sd::utils::chain_builder::ChainBuilder;
-        pub use crate::sd::utils::chain_handle::{ChainHandle, ToMsgHandle};
-    }
+    pub use crate::sd::utils::chain_builder;
+    pub use crate::sd::utils::chain_handle;
 }
 
 pub mod send {
@@ -94,7 +91,7 @@ pub mod send {
         pub use crate::target_generate;
     }
     pub mod body {
-        pub use crate::sd::send_body::MsgSend;
+        pub use crate::sd::msg_send::MsgSend;
         pub use crate::sd::send_body::{NudgeSend, ReCall, SignleTagetSend, TempTagetSend};
     }
     pub mod contain {

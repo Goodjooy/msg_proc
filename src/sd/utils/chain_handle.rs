@@ -4,25 +4,25 @@ use crate::rev::msg_chain::{At, Image, Plain};
 
 use super::BulidTarget;
 
-pub struct ChainHandle(BulidTarget);
+pub struct ChainHandle<'s>(& 's BulidTarget);
 
-pub trait ToMsgHandle {
-    fn to_msg_handle(self) -> ChainHandle;
+pub trait ToMsgHandle<'s> {
+    fn to_msg_handle(&self) -> ChainHandle;
 }
 
-impl ToMsgHandle for BulidTarget {
-    fn to_msg_handle(self) -> ChainHandle {
+impl<'s> ToMsgHandle<'s> for BulidTarget {
+    fn to_msg_handle(&self) -> ChainHandle {
         ChainHandle::new(self)
     }
 }
 
-impl ChainHandle {
-    pub fn new(src: BulidTarget) -> Self {
+impl<'s> ChainHandle<'s> {
+    pub fn new(src: & 's BulidTarget) -> Self {
         Self(src)
     }
 }
 
-impl ChainHandle {
+impl ChainHandle<'_> {
     pub fn get_img(&self, index: usize) -> Option<&Box<dyn MessageChain>> {
         let res = self
             .0

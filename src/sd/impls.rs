@@ -10,7 +10,7 @@ use super::{
 };
 
 pub fn new_firend_send<S>(
-    target: S,
+    target: &S,
     messages: Vec<Box<dyn MessageChain>>,
     quote: Option<i64>,
 ) -> SignleTagetSend
@@ -25,7 +25,7 @@ where
     }
 }
 pub fn new_group_send<S>(
-    target: S,
+    target: &S,
     messages: Vec<Box<dyn MessageChain>>,
     quote: Option<i64>,
 ) -> SignleTagetSend
@@ -43,7 +43,7 @@ where
 }
 
 pub fn new_temp_send<S: SendTarget>(
-    target: S,
+    target: &S,
     messages: Vec<Box<dyn MessageChain>>,
     quote: Option<i64>,
 ) -> TempTagetSend {
@@ -60,7 +60,7 @@ pub fn new_temp_send<S: SendTarget>(
 
 
 
-pub fn new_nudge_send<S: SendTarget>(target: S, kind: Kind) -> NudgeSend {
+pub fn new_nudge_send<S: SendTarget>(target: &S, kind: Kind) -> NudgeSend {
     NudgeSend {
         sessionKey: None,
         target: target.target_id(),
@@ -69,7 +69,7 @@ pub fn new_nudge_send<S: SendTarget>(target: S, kind: Kind) -> NudgeSend {
     }
 }
 
-pub fn new_recall_send<S: SendTarget>(target: i64) -> ReCall {
+pub fn new_recall_send(target: i64) -> ReCall {
     ReCall {
         sessionKey: None,
         target,
