@@ -90,13 +90,16 @@ pub mod send {
         /// custom grenerate trait
         pub use crate::target_generate;
     }
+
     pub mod body {
         pub use crate::sd::msg_send::MsgSend;
+        pub use crate::sd::msg_send::SendBody;
         pub use crate::sd::send_body::{NudgeSend, ReCall, SignleTagetSend, TempTagetSend};
     }
     pub mod contain {
         pub use crate::sd::impls::{
-            new_firend_send, new_group_send, new_nudge_send, new_recall_send, new_temp_send,
+            new_firend_send, new_group_send, new_nudge_send, new_recall_send, new_source_send,
+            new_temp_send,
         };
     }
 }
