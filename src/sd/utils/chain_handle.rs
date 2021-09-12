@@ -4,7 +4,7 @@ use crate::rev::msg_chain::{At, Image, Plain};
 
 use super::BulidTarget;
 
-pub struct ChainHandle<'s>(& 's BulidTarget);
+pub struct ChainHandle<'s>(&'s BulidTarget);
 
 pub trait ToMsgHandle<'s> {
     fn to_msg_handle(&self) -> ChainHandle;
@@ -17,7 +17,7 @@ impl<'s> ToMsgHandle<'s> for BulidTarget {
 }
 
 impl<'s> ChainHandle<'s> {
-    pub fn new(src: & 's BulidTarget) -> Self {
+    pub fn new(src: &'s BulidTarget) -> Self {
         Self(src)
     }
 }
@@ -34,13 +34,20 @@ impl ChainHandle<'_> {
         res
     }
 
-    pub fn all_image(&self)->Vec<Image>{
-         self.0
-        .iter()
-        .filter(|item|item.get_type().to_lowercase()=="image")
-        .map(|img|img.into_target::<Image>().unwrap())
-        .collect()
+    pub fn all_image(&self) -> Vec<(usize, Image)> {
+        self.0
+            .iter()
+            .enumerate()
+            .filter(|item| item.1.get_type().to_lowercase() == "image")
+            .map(|(index, img)| (index, img.into_target::<Image>().unwrap()))
+            .collect()
     }
+    pub fn replace_image(&mut self,imgs:Vec<(usize,Image)>){
+        let img_iter=imgs.iter();
+        todo!();
+
+    }
+
 
     pub fn conbin_plain(&self) -> Option<String> {
         let res = self
@@ -64,5 +71,26 @@ impl ChainHandle<'_> {
         res
     }
 
-    
+    pub fn continuous_text(&self) -> Option<String> {
+        let res = self
+            .0
+            .iter()
+            .map(|t| {
+                if t.get_type().to_lowercase() == "plain" {
+                    Some(t.into_target::<Plain>().unwrap().text.clone())
+                } else {
+                    None
+                }
+            })
+            .reduce(|a, b| {
+                if a.is_some() && b.is_some() {
+                    Some(format!("{}{}", a.unwrap(), b.unwrap()))
+                } else {
+                    None
+                }
+            })
+            .and_then(|f| if f.is_some() { Some(f.unwrap()) } else { None });
+
+        res
+    }
 }

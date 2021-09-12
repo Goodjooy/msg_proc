@@ -4,7 +4,7 @@ mod impls;
 mod rev;
 mod sd;
 
-pub trait Sender {
+pub trait Sender:Send {
     fn get_sender_id(&self) -> &u64;
     fn get_sender_permission(&self) -> Option<&Permission> {
         None
@@ -37,6 +37,8 @@ pub struct MessageRev {
     pub sender: Box<dyn Sender>,
     pub chain: Vec<Box<dyn MessageChain>>,
 }
+
+
 
 pub enum Permission {
     Owner,
@@ -90,7 +92,9 @@ pub mod send {
         /// custom grenerate trait
         pub use crate::target_generate;
     }
-
+    pub mod cmd{
+        pub use crate::sd::command::{CmdWithSendBody,SendCommand};
+    }
     pub mod body {
         pub use crate::sd::msg_send::MsgSend;
         pub use crate::sd::msg_send::SendBody;

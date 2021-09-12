@@ -1,7 +1,9 @@
+use crate::chain::message_chain_loader;
 use std::{collections::HashMap, fmt::Display};
 
+use msg_chain::{IntoChainMeta, MessageChain};
 use serde::{ser::SerializeMap, Serialize};
-use serde_json::Value;
+use serde_json::{Map, Value};
 
 use super::{
     command::{CmdWithSendBody, SendCommand},
@@ -42,17 +44,43 @@ impl SendBody {
             .insert("sessionKey".to_string(), Value::String(key.to_string()));
     }
 
-    pub fn into_cmd_send_body(
-        self,
-        cmd: &str,
-        side_cmd: Option<&str>,
-    ) -> CmdWithSendBody {
+    pub fn into_cmd_send_body(self, cmd: &str, side_cmd: Option<&str>) -> CmdWithSendBody {
         let cmd = SendCommand {
             main_cmd: cmd.to_string(),
             side_cmd: side_cmd.and_then(|s| Some(s.to_string())),
         };
         CmdWithSendBody { cmd, body: self }
     }
+    pub fn get_send_chain(&self) -> Vec<Box<dyn MessageChain>> {
+        let res = self
+            .0
+            .get("messageCahin")
+            .expect("Target SendBody Do not have MessageChain");
+
+        if let Value::Array(arr) = res {
+            into_msg_chain(arr)
+        } else {
+            panic!("Message Chain Not A Object");
+        }
+    }
+}
+
+fn into_msg_chain(chain: &Vec<Value>) -> Vec<Box<dyn MessageChain>> {
+    chain
+        .iter()
+        .map(|f| {
+            if let Value::Object(obj) = f {
+                let map = obj
+                    .into_iter()
+                    .map(|(k, v)| (k.clone(), v.into_chain()))
+                    .collect();
+                message_chain_loader(&map)
+                    .expect(&format!("Can not Load As Message Chain | {:?}", f))
+            } else {
+                panic!("Message Chain Not A Json Object | {:?}", f);
+            }
+        })
+        .collect::<Vec<_>>()
 }
 
 impl Serialize for SendBody {
