@@ -103,7 +103,9 @@ pub mod send {
     pub mod contain {
         pub use crate::sd::impls::{
             new_firend_send, new_group_send, new_nudge_send, new_recall_send, new_source_send,
-            new_temp_send,SendBodyTypeNotFoundError
+            new_temp_send
         };
     }
+
+    pub use crate::sd::impls::SendBodyTypeNotFoundError;
 }
