@@ -10,6 +10,11 @@ use super::{
     SendTarget,
 };
 
+#[derive(Debug)]
+pub struct SendBodyTypeNotFoundError {
+    target_mod: String,
+}
+
 pub fn new_firend_send<S>(
     target: &S,
     messages: Vec<Box<dyn MessageChain>>,
@@ -70,12 +75,14 @@ pub fn new_source_send<S: SendTarget>(
     target: &S,
     messages: Vec<Box<dyn MessageChain>>,
     quote: Option<i64>,
-) -> Option<CmdWithSendBody> {
+) -> Result<CmdWithSendBody, SendBodyTypeNotFoundError> {
     match msg_ty {
-        "FriendMessage" => Some(new_firend_send(target, messages, quote)),
-        "GroupMessage" => Some(new_group_send(target, messages, quote)),
-        "TempMessage" => Some(new_temp_send(target, messages, quote)),
-        _ => None,
+        "FriendMessage" => Ok(new_firend_send(target, messages, quote)),
+        "GroupMessage" => Ok(new_group_send(target, messages, quote)),
+        "TempMessage" => Ok(new_temp_send(target, messages, quote)),
+        _ => Err(SendBodyTypeNotFoundError {
+            target_mod: String::from(msg_ty),
+        }),
     }
 }
 
