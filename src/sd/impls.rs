@@ -12,7 +12,7 @@ use super::{
 
 #[derive(Debug)]
 pub struct SendBodyTypeNotFoundError {
-    target_mod: String,
+    pub target_mod: String,
 }
 
 pub fn new_firend_send<S>(

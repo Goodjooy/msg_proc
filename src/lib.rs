@@ -107,5 +107,5 @@ pub mod send {
         };
     }
 
-    pub use crate::sd::impls::SendBodyTypeNotFoundError;
 }
+pub use crate::sd::impls::SendBodyTypeNotFoundError;
